@@ -1,1 +1,1 @@
-# 545-ML-Project
+# EECS 545-ML-Project
