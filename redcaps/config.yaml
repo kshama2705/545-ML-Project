@@ -1,0 +1,63 @@
+AMP: true
+CUDNN_BENCHMARK: true
+CUDNN_DETERMINISTIC: false
+DATA:
+  EOS_INDEX: 2
+  IMAGE_CROP_SIZE: 224
+  IMAGE_TRANSFORM_TRAIN:
+  - random_resized_crop
+  - horizontal_flip
+  - color_jitter
+  - normalize
+  IMAGE_TRANSFORM_VAL:
+  - smallest_resize
+  - center_crop
+  - normalize
+  MASKED_LM:
+    MASK_PROBABILITY: 0.85
+    MASK_PROPORTION: 0.15
+    REPLACE_PROBABILITY: 0.1
+  MASK_INDEX: 3
+  MAX_CAPTION_LENGTH: 50
+  ROOT: datasets/redcaps/tarfiles/*.tar
+  SOS_INDEX: 1
+  TOKENIZER_MODEL: datasets/common_30k.model
+  UNK_INDEX: 0
+  USE_PERCENTAGE: 100.0
+  USE_SINGLE_CAPTION: false
+  VOCAB_SIZE: 30000
+MODEL:
+  DECODER:
+    BEAM_SIZE: 5
+    MAX_DECODING_STEPS: 30
+    NAME: nucleus_sampling
+    NUCLEUS_SIZE: 0.9
+  LABEL_SMOOTHING: 0.1
+  NAME: virtex_web
+  TEXTUAL:
+    DROPOUT: 0.1
+    NAME: transdec_prenorm::L6_H512_A8_F2048
+  VISUAL:
+    FEATURE_SIZE: 2048
+    FROZEN: false
+    NAME: torchvision::resnet50
+    PRETRAINED: false
+OPTIM:
+  BATCH_SIZE: 256
+  CLIP_GRAD_NORM: 10.0
+  CNN_LR: 0.0005
+  LOOKAHEAD:
+    ALPHA: 0.5
+    STEPS: 5
+    USE: false
+  LR: 0.0005
+  LR_DECAY_NAME: cosine
+  LR_GAMMA: 0.1
+  LR_STEPS: []
+  NO_DECAY: .*textual.(embedding|transformer).*(norm.*|bias)
+  NUM_ITERATIONS: 1500000
+  OPTIMIZER_NAME: adamw
+  SGD_MOMENTUM: 0.9
+  WARMUP_STEPS: 10000
+  WEIGHT_DECAY: 0.01
+RANDOM_SEED: 0
