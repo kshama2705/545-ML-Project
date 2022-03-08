@@ -18,7 +18,7 @@ image = image.convert("RGB")
 
 image_dict = imageLoader.transform(image)
 
-subreddit, caption, logits = virtexModel.predict(
+subreddit, caption, logits, logit2word = virtexModel.predict(
             image_dict, sub_prompt=sub, prompt=''
         )
-print(subreddit, caption, logits.shape)
+print(subreddit, caption, logits.shape, logit2word)

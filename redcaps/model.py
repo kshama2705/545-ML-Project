@@ -120,6 +120,9 @@ class VirTexModel:
                 sep_index = caption.index(self.tokenizer.token_to_id("[SEP]"))
                 caption[sep_index] = self.tokenizer.token_to_id("://")
 
+            logit2word = {}
+            for i in range(len(caption)):
+                logit2word[i] = self.tokenizer.decode(caption[:i + 1]).replace(self.tokenizer.decode(caption[:i]), '').strip()
             caption = self.tokenizer.decode(caption)
 
             if "://" in caption:
@@ -135,7 +138,7 @@ class VirTexModel:
 
             is_valid_subreddit = subreddit in self.valid_subs
 
-        return subreddit, rest_of_caption, caption_logits
+        return subreddit, rest_of_caption, caption_logits, logit2word
 
 
 def download_files():
