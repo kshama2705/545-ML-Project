@@ -122,7 +122,8 @@ class AutoRegressiveNucleusSampling(object):
             current_predictions[last_predictions == self._eos_index] = self._eos_index
 
             predictions.append(current_predictions)
-            logit_predictions.append(current_logits[range(len(current_predictions)),current_predictions])
+            cr = F.log_softmax(current_logits, dim=-1)
+            logit_predictions.append(cr[range(len(current_predictions)),current_predictions])
 
         # Remove start-of-sentence token from predictions, and collect them together.
         # shape: (batch_size, max_steps) .. or could be less than max_steps.
