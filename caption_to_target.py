@@ -22,27 +22,43 @@ def extract_nouns(img_caps):
     return img_caps.apply(extract_nouns)
 
 #
-def max_word(wordlist):
-    n = len(wordlist)
-    similarity = np.zeros((n, n))
-    for i in range(n):
-        for j in range(n):
-            wordFromList1 = wordnet.synsets(wordlist[i])
+def max_word(wordlist, classes):
+    nw = len(wordlist)
+    nc = len(classes)
+    similarity = np.zeros((nc, nw))
+    for i in range(nc):
+        for j in range(nw):
+            wordFromList1 = wordnet.synsets(classes[i])
             wordFromList2 = wordnet.synsets(wordlist[j])
             if wordFromList1 and wordFromList2:
                 similarity[i, j] = wordFromList1[0].wup_similarity(wordFromList2[0])
 
     similarity = np.sum(similarity, axis=1)
-    return wordlist[np.argmax(similarity)]
+    return classes[np.argmax(similarity)]
 
 
 # assuming we have a dataframe 'nouns' where rows are samples
 # and columns are the nouns in each caption for that sample
-def extract_targets(nouns, method=2):
+def extract_targets(nouns, classes, method=2):
     # pick words that have highest similarity to every other target
     # if method is 1 extract 1 target per caption returns nxm
     #              2 extract 1 target per image returns nx1
     if method==1:
-        return nouns.applymap(lambda x: max_word(re.split('\s+', x)))
+        return nouns.applymap(lambda x: max_word(re.split('\s+', x), classes))
     else:
-        return nouns.apply(lambda row: max_word(re.split('\s+', ' '.join(row.values.astype(str)))), axis=1)
+        return nouns.apply(lambda row: max_word(re.split('\s+', ' '.join(row.values.astype(str))), classes), axis=1)
+
+
+coco_names = ['__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+              'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 
+              'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 
+              'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella',
+              'N/A', 'N/A', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard',
+              'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard',
+              'surfboard', 'tennis racket', 'bottle', 'N/A', 'wine glass', 'cup', 'fork',
+              'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange',
+              'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+              'potted plant', 'bed', 'N/A', 'dining table', 'N/A', 'N/A', 'toilet',
+              'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave',
+              'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book', 'clock', 'vase',
+              'scissors', 'teddy bear', 'hair drier', 'toothbrush']
