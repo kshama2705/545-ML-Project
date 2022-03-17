@@ -72,7 +72,9 @@ class VirTexModel:
         self.model.eval()
         self.valid_subs = json.load(open(VALID_SUBREDDITS_PATH))
 
-    def predict(self, image_dict, sub_prompt=None, prompt=""):
+    def predict(self, input_tensor, sub_prompt=None, prompt=""):
+        image_dict={}
+        image_dict['image']=input_tensor
         if sub_prompt is None:
             subreddit_tokens = torch.tensor(
                 [self.model.sos_index], device=self.device
