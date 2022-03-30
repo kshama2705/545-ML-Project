@@ -13,10 +13,10 @@ from virtex.config import Config
 from virtex.factories import TokenizerFactory, PretrainingModelFactory
 from virtex.utils.checkpointing import CheckpointManager
 
-CONFIG_PATH = "config.yaml"
-MODEL_PATH = "checkpoint_last5.pth"
-VALID_SUBREDDITS_PATH = "subreddit_list.json"
-SAMPLES_PATH = "./samples/*.jpg"
+CONFIG_PATH = "./redcaps/config.yaml"
+MODEL_PATH = "./redcaps/checkpoint_last5.pth"
+VALID_SUBREDDITS_PATH = "./redcaps/subreddit_list.json"
+SAMPLES_PATH = "./redcaps/samples/*.jpg"
 
 
 class ImageLoader:
