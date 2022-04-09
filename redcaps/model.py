@@ -13,11 +13,11 @@ from virtex.config import Config
 from virtex.factories import TokenizerFactory, PretrainingModelFactory
 from virtex.utils.checkpointing import CheckpointManager
 
-CONFIG_PATH = "/Users/vineet/Desktop/Winter -22 Courses/EECS 545/Project/545-ML-Project/redcaps/config.yaml"
-MODEL_PATH = "redcaps/checkpoint.pth"
-VALID_SUBREDDITS_PATH = "redcaps/subreddit_list.json"
-SAMPLES_PATH = "./samples/*.jpg"
 
+CONFIG_PATH = "./redcaps/config.yaml"
+MODEL_PATH = "./redcaps/checkpoint_last5.pth"
+VALID_SUBREDDITS_PATH = "./redcaps/subreddit_list.json"
+SAMPLES_PATH = "./redcaps/samples/*.jpg"
 
 class ImageLoader:
     def __init__(self):
@@ -72,7 +72,9 @@ class VirTexModel:
         self.model.eval()
         self.valid_subs = json.load(open(VALID_SUBREDDITS_PATH))
 
-    def predict(self, image_dict, sub_prompt=None, prompt=""):
+    def predict(self, input_tensor, sub_prompt=None, prompt=""):
+        image_dict={}
+        image_dict['image']=input_tensor
         if sub_prompt is None:
             subreddit_tokens = torch.tensor(
                 [self.model.sos_index], device=self.device
