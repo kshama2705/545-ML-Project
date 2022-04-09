@@ -63,6 +63,7 @@ class AutoRegressiveNucleusSampling(object):
             start_predictions[:, i] for i in range(start_predictions.size(1))
         ]
         logit_predictions = []
+        full_logit_predictions = []
 
         for timestep in range(self.max_steps):
             # Get the predictions from last timestep (most recent).
@@ -82,6 +83,7 @@ class AutoRegressiveNucleusSampling(object):
             # Take a step, get the distribution of logits from next timestep.
             # shape: (batch_size, num_classes)
             current_logits = step(predictions_so_far)
+            unmasked_logits = current_logits.clone()
 
             # Sort logits in descending order to determine the nucleus.
             sorted_logits, sorted_idx = torch.sort(current_logits, descending=True)
@@ -123,7 +125,9 @@ class AutoRegressiveNucleusSampling(object):
 
             predictions.append(current_predictions)
             cr = F.log_softmax(current_logits, dim=-1)
+            unmasked_cr = F.log_softmax(unmasked_logits, dim=-1)
             logit_predictions.append(cr[range(len(current_predictions)),current_predictions])
+            full_logit_predictions.append(unmasked_cr)
 
         # Remove start-of-sentence token from predictions, and collect them together.
         # shape: (batch_size, max_steps) .. or could be less than max_steps.
@@ -131,4 +135,4 @@ class AutoRegressiveNucleusSampling(object):
 
         # We don't return any logprobs of generated sequence with nucleus sampling,
         # unlike `AutoregressiveBeamSearch`.
-        return all_predictions, torch.cat(logit_predictions)
+        return all_predictions, torch.cat(logit_predictions), torch.cat(full_logit_predictions)

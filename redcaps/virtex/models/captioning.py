@@ -180,10 +180,10 @@ class CaptioningModel(nn.Module):
             # signature accepted by beam search class (partial captions only).
             decoding_step = functools.partial(self.decoding_step, visual_features)
 
-            predicted_caption, predicted_logits = self.decoder.search(
+            predicted_caption, predicted_logits, predicted_logits_full = self.decoder.search(
                 start_predictions, decoding_step
             )
-            output_dict = {"predictions": predicted_caption, "logits": predicted_logits}
+            output_dict = {"predictions": predicted_caption, "logits": predicted_logits, "logits_full": predicted_logits_full}
 
         return output_dict
 

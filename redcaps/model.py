@@ -13,9 +13,9 @@ from virtex.config import Config
 from virtex.factories import TokenizerFactory, PretrainingModelFactory
 from virtex.utils.checkpointing import CheckpointManager
 
-CONFIG_PATH = "config.yaml"
-MODEL_PATH = "checkpoint_last5.pth"
-VALID_SUBREDDITS_PATH = "subreddit_list.json"
+CONFIG_PATH = "/Users/vineet/Desktop/Winter -22 Courses/EECS 545/Project/545-ML-Project/redcaps/config.yaml"
+MODEL_PATH = "redcaps/checkpoint.pth"
+VALID_SUBREDDITS_PATH = "redcaps/subreddit_list.json"
 SAMPLES_PATH = "./samples/*.jpg"
 
 
@@ -115,6 +115,7 @@ class VirTexModel:
             output = self.model(image_dict)
             caption = output["predictions"][0].tolist()
             caption_logits = output['logits']
+            caption_logits_full = output['logits_full']
 
             if self.tokenizer.token_to_id("[SEP]") in caption:
                 sep_index = caption.index(self.tokenizer.token_to_id("[SEP]"))
@@ -139,6 +140,78 @@ class VirTexModel:
             is_valid_subreddit = subreddit in self.valid_subs
 
         return subreddit, rest_of_caption, caption_logits, logit2word
+
+
+    def predict_labels(self, image_dict, labels, sub_prompt=None, prompt=""):
+        if sub_prompt is None:
+            subreddit_tokens = torch.tensor(
+                [self.model.sos_index], device=self.device
+            ).long()
+        else:
+            subreddit_tokens = " ".join(ws.segment(ws.clean(sub_prompt)))
+            subreddit_tokens = (
+                [self.model.sos_index]
+                + self.tokenizer.encode(subreddit_tokens)
+                + [self.tokenizer.token_to_id("[SEP]")]
+            )
+            subreddit_tokens = torch.tensor(subreddit_tokens, device=self.device).long()
+
+        if prompt != "":
+            # at present prompts without subreddits will break without this change
+            # TODO FIX
+            cap_tokens = self.tokenizer.encode(prompt)
+            cap_tokens = torch.tensor(cap_tokens, device=self.device).long()
+            subreddit_tokens = (
+                subreddit_tokens
+                if sub_prompt is not None
+                else torch.tensor(
+                    (
+                        [self.model.sos_index]
+                        + self.tokenizer.encode("pics")
+                        + [self.tokenizer.token_to_id("[SEP]")]
+                    ),
+                    device=self.device,
+                ).long()
+            )
+
+            subreddit_tokens = torch.cat([subreddit_tokens, cap_tokens])
+
+        is_valid_subreddit = False
+        subreddit, rest_of_caption = "", ""
+        image_dict["decode_prompt"] = subreddit_tokens
+
+        label_tokens = [self.tokenizer.token_to_id(x) for x in labels]
+        while not is_valid_subreddit:
+
+            #with torch.no_grad():
+            output = self.model(image_dict)
+            caption = output["predictions"][0].tolist()
+            caption_logits = output['logits']
+            caption_logits_full = output['logits_full']
+
+            if self.tokenizer.token_to_id("[SEP]") in caption:
+                sep_index = caption.index(self.tokenizer.token_to_id("[SEP]"))
+                caption[sep_index] = self.tokenizer.token_to_id("://")
+
+            logit2word = {}
+            for i in range(len(caption)):
+                logit2word[i] = self.tokenizer.decode(caption[:i + 1]).replace(self.tokenizer.decode(caption[:i]), '').strip()
+            caption = self.tokenizer.decode(caption)
+
+            if "://" in caption:
+                subreddit, rest_of_caption = caption.split("://")
+                subreddit = "".join(subreddit.split())
+                rest_of_caption = rest_of_caption.strip()
+            else:
+                subreddit, rest_of_caption = "", caption.strip()
+
+            # split prompt for coloring:
+            if prompt != "":
+                rest_of_caption = caption.split(prompt.strip())
+
+            is_valid_subreddit = subreddit in self.valid_subs
+
+        return subreddit, rest_of_caption, caption_logits_full, logit2word
 
 
 def download_files():
