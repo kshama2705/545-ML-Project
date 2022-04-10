@@ -7,16 +7,15 @@ import cv2
 import re
 from itertools import combinations
 import nltk
-nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('wordnet')
 
-from nltk.corpus import stopwords, wordnet
+from nltk.corpus import wordnet
 from model import *
 
 virtexModel, imageLoader, sample_images, valid_subs = create_objects()
-image_file = "/Users/vineet/Desktop/Winter -22 Courses/EECS 545/Project/545-ML-Project/redcaps/Pascal1.jpg"
+image_file = "Pascal1.jpg"
 image = Image.open(image_file)
 
 sub = 'i took a picture'
@@ -26,22 +25,29 @@ nuc_size = 0.8
 logit_threshold = -7
 # ----------------------------------------------------------------------------
 def extract_nouns(img_caps):
-    # load conventional stop words
-    stop_words = stopwords.words('english')
-
-    # remove stop words / can include removal of some nouns
-    remove_stop = np.vectorize(lambda x: ' '.join([word for word in x.split() if word not in (stop_words)]))
-    img_caps = remove_stop(img_caps)
-    print()
-    print(str(img_caps))
-    print()
-    print(nltk.pos_tag(nltk.word_tokenize(str(img_caps))))
-
     # extract nouns
     is_noun = lambda pos: True if pos[0] == 'N' else False
-    extract_nouns = np.vectorize(lambda x: ' '.join([word for (word, pos) 
-                                                     in nltk.pos_tag(nltk.word_tokenize(x)) if is_noun(pos)]))
-    return extract_nouns(img_caps)
+    pos = nltk.pos_tag(nltk.word_tokenize(img_caps))[-1]
+    if is_noun(pos[1]):
+        return pos[0]
+    return None
+
+
+def max_word(word, classes):
+    nc = len(classes)
+    similarity = np.zeros(nc)
+    for i in range(nc):
+        wordFromList1 = wordnet.synsets(classes[i])
+        wordFromList2 = wordnet.synsets(word)
+        if wordFromList1 and wordFromList2:
+            similarity[i] = wordFromList1[0].wup_similarity(wordFromList2[0])
+
+    max_class = classes[np.argmax(similarity)]
+
+    if np.max(similarity) > 0.4:
+        return max_class
+
+    return None
 
 virtexModel.model.decoder.nucleus_size = nuc_size
 
@@ -56,12 +62,10 @@ for i in range(5):
     subreddit, caption, logits, logit2word = virtexModel.predict_labels(
                 image_dict, coco_labels, sub_prompt=sub, prompt='itap of a'
             )
-    print(subreddit, caption, logits.shape, logit2word)
-    #print(logits[0])
-    #print([coco_labels[x] for x in torch.argmax(logits, dim=1)][0])
-    #print([virtexModel.tokenizer.decode([x.item()]) for x in torch.arange(logits.shape[1])[logits[0] > logit_threshold]])
-    
     potential_words = [virtexModel.tokenizer.decode([x.item()]) for x in torch.arange(logits.shape[1])[logits[0] > logit_threshold]]
-    potential_nouns = extract_nouns(" ".join(potential_words))
-    print(potential_nouns)
-    potential_labels = [] #TODO
+    potential_nouns = [extract_nouns("i took a picture of a " + word) for word in potential_words if extract_nouns("i took a picture of a " + word)]
+
+    
+print(potential_words)
+print(potential_nouns)
+print([max_word(noun, coco_labels)+"/"+noun for noun in potential_nouns if max_word(noun, coco_labels)])
