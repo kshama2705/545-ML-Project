@@ -1,0 +1,44 @@
+#!/bin/bash
+# Created by the ARC-TS SLURM job script generator for use on Great Lakes
+# Fri Sep 10 2021 16:21:51 GMT-0400 (Eastern Daylight Time)
+
+# The name of the job:
+#SBATCH --job-name="hp_search"
+
+# Send yourself an email when the job:
+# aborts abnormally (fails)
+#SBATCH --mail-type=FAIL
+# ends successfully
+#SBATCH --mail-type=END
+
+# Use this email address:
+#SBATCH --mail-user=johnmaxh@umich.edu                      #TODO
+
+# Maximum number of tasks/CPU cores used by the job:
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem-per-cpu=2000m
+
+# The maximum running time of the job in days-hours:mins:sec
+#SBATCH --time=14-0:0:00
+
+# The account which this job should run under:
+#SBATCH --account="eecs545s002w22_class"
+
+# Partition for the job:
+#SBATCH -p standard
+
+# Multithreaded (SMP) job: must run on one node
+#SBATCH --nodes=1
+
+# Run the job from the directory where it was launched (default)
+
+# The job command(s):
+source ~/.bashrc
+conda activate myenv                                        #TODO
+
+python run_inference.py
+
+##########################################################################################
+# Launch on greatlakes with 'sbatch run_job.sbat' in the same folder as run_inference.py #
+##########################################################################################
