@@ -172,7 +172,7 @@ def eval_threshold(logit_threshold = -6, max_word_threshold = 0.4, heat_threshol
     #Change here to switch between labels
     labels=VOC_labels
         
-    for itr in range(5):
+    for itr in range(100):
         image_tensor, label = next(data)
         #print(label)
         #image_file = "redcaps/datasets/Pascal3.jpg"
