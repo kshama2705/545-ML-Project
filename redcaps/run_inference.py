@@ -192,9 +192,11 @@ def eval_threshold(logit_threshold = -6, max_word_threshold = 0.4, heat_threshol
         # Matches potential Nouns in the generated caption to the potential pseudo label in the respective dataset class names. 
         selected_nouns = [noun for noun in potential_nouns if max_word(noun, labels, max_word_threshold)]
         pseudo_label_to_caption_words=[(max_word(noun, labels, max_word_threshold), confidence) for noun, confidence in zip(potential_nouns, confidence) if max_word(noun, labels, max_word_threshold)]
+        pseudo_label_to_caption_words, confidence = zip(*pseudo_label_to_caption_words)
+        
         if len(pseudo_label_to_caption_words) == 0:
             return
-        pseudo_label_to_caption_words, confidence = zip(*pseudo_label_to_caption_words)
+        
         words_to_gradcam=selected_nouns 
         word_tokens=[virtexModel.tokenizer.encode(x)[0] for x in words_to_gradcam]
         #logits=[logits[0,x].item() for x in word_tokens]
