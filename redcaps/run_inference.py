@@ -163,7 +163,7 @@ class VirtexModelOutputWrapper(torch.nn.Module):
 def eval_threshold(logit_threshold = -6, max_word_threshold = 0.4, heat_threshold = 0.5, intersection_threshold = 0.5):
     # Set the Manual Seed to force the model to generate the same caption
     torch.manual_seed(10)
-    voc_instance=torchvision.datasets.VOCDetection(root="./redcaps/datasets",year='2012',download=False,transform=imageLoader.image_transform)
+    voc_instance=torchvision.datasets.VOCDetection(root="./redcaps/datasets",year='2012',download=True,transform=imageLoader.image_transform)
     #print(len(voc_instance))
     data = iter(DataLoader(voc_instance, batch_size=1, shuffle=False, num_workers=0))
     sub = 'i took a picture'
@@ -193,7 +193,9 @@ def eval_threshold(logit_threshold = -6, max_word_threshold = 0.4, heat_threshol
         selected_nouns = [noun for noun in potential_nouns if max_word(noun, labels, max_word_threshold)]
         pseudo_label_to_caption_words=[(max_word(noun, labels, max_word_threshold), confidence) for noun, confidence in zip(potential_nouns, confidence) if max_word(noun, labels, max_word_threshold)]
         pseudo_label_to_caption_words, confidence = zip(*pseudo_label_to_caption_words)
-
+        if len(pseudo_label_to_caption_words) == 0:
+            return
+        
         words_to_gradcam=selected_nouns 
         word_tokens=[virtexModel.tokenizer.encode(x)[0] for x in words_to_gradcam]
         #logits=[logits[0,x].item() for x in word_tokens]
