@@ -21,7 +21,7 @@ class SentencePieceBPETokenizer(object):
 
         # Load pretrained tokenizer model.
         self.model = sp.SentencePieceProcessor()
-        model_path= "/Users/vineet/Desktop/Winter -22 Courses/EECS 545/Project/545-ML-Project/redcaps/datasets/common_30k.model"
+        model_path= "./redcaps/datasets/common_30k.model"
         self.model.Load(model_path)
 
     def __getstate__(self):
